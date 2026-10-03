@@ -1,0 +1,473 @@
+<div class="auth-viewport">
+  <!-- Dynamic Ambient Glow Orbs -->
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+  <div class="ambient-orb orb-3"></div>
+
+  <div class="auth-card">
+    <!-- Header / Brand -->
+    <header class="auth-header">
+      <div class="brand-badge">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+        <span class="brand-name">SKAR PROVINCE</span>
+      </div>
+      <h1 class="portal-title">Identity & Access Management</h1>
+      <p class="portal-subtitle">Single sign-on gateway with one-time verification & administrator privileges</p>
+    </header>
+
+    <!-- Top Mode Tab Switcher -->
+    <nav class="mode-tabs">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeMode() === 'user'"
+        (click)="switchMode('user')"
+        id="tab-user-login"
+      >
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span>User Access (OTP)</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn superadmin-tab"
+        [class.active]="activeMode() === 'superadmin'"
+        (click)="switchMode('superadmin')"
+        id="tab-superadmin-login"
+      >
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+        <span>SuperAdmin</span>
+        <span class="badge-mini">Privileged</span>
+      </button>
+    </nav>
+
+    <!-- Alert / Toast Messages -->
+    @if (errorMessage()) {
+      <div class="alert-box alert-error" role="alert">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="alert-box alert-success" role="status">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    <!-- TAB 1: USER LOGIN WITH OTP -->
+    @if (activeMode() === 'user') {
+      <section class="tab-content user-section">
+        <!-- STEP 1: Select Channel & Input Destination -->
+        @if (userStep() === 'input') {
+          <div class="step-container">
+            <div class="section-label-group">
+              <span class="section-badge">Step 1 of 2</span>
+              <h2 class="section-title">Verify with One-Time Password</h2>
+              <p class="section-desc">Select whether you want to receive your 6-digit OTP via Email or Mobile Phone.</p>
+            </div>
+
+            <!-- Channel Selector Pills -->
+            <div class="channel-pills">
+              <button
+                type="button"
+                class="channel-pill"
+                [class.selected]="selectedChannel() === 'email'"
+                (click)="selectChannel('email')"
+                id="channel-email-btn"
+              >
+                <svg class="channel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <div class="pill-text">
+                  <span class="pill-title">Email Address</span>
+                  <span class="pill-sub">Receive code in inbox</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                class="channel-pill"
+                [class.selected]="selectedChannel() === 'phone'"
+                (click)="selectChannel('phone')"
+                id="channel-phone-btn"
+              >
+                <svg class="channel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                  <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                </svg>
+                <div class="pill-text">
+                  <span class="pill-title">Phone Number</span>
+                  <span class="pill-sub">Receive code via SMS</span>
+                </div>
+              </button>
+            </div>
+
+            <!-- Dynamic Input Field -->
+            <form (ngSubmit)="submitSendOtp()" class="auth-form" autocomplete="on">
+              <div class="form-group">
+                <label for="recipient-input" class="field-label">
+                  @if (selectedChannel() === 'email') {
+                    Email Address
+                  } @else {
+                    Mobile Phone Number
+                  }
+                </label>
+
+                <div class="input-wrapper">
+                  @if (selectedChannel() === 'email') {
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="4"></circle>
+                      <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"></path>
+                    </svg>
+                    <input
+                      id="recipient-input"
+                      type="email"
+                      name="emailOrPhone"
+                      [(ngModel)]="emailOrPhone"
+                      placeholder="name@company.com"
+                      class="styled-input"
+                      required
+                      autocomplete="email"
+                      [disabled]="isLoading()"
+                    />
+                  } @else {
+                    <div class="phone-prefix">+91</div>
+                    <input
+                      id="recipient-input"
+                      type="tel"
+                      name="emailOrPhone"
+                      [(ngModel)]="emailOrPhone"
+                      placeholder="9876543210"
+                      class="styled-input phone-input"
+                      maxlength="15"
+                      required
+                      autocomplete="tel"
+                      [disabled]="isLoading()"
+                    />
+                  }
+                </div>
+              </div>
+
+              <!-- Quick Demo Fill Helpers -->
+              <div class="demo-helpers">
+                <span class="helper-text">Quick Demo Presets:</span>
+                <button
+                  type="button"
+                  class="demo-chip"
+                  (click)="fillDemoUser('email')"
+                  title="Use Rahul's Email"
+                >
+                  📧 rahul@example.com
+                </button>
+                <button
+                  type="button"
+                  class="demo-chip"
+                  (click)="fillDemoUser('phone')"
+                  title="Use Rahul's Phone"
+                >
+                  📱 9876543210
+                </button>
+              </div>
+
+              <!-- Submit Button -->
+              <button
+                type="submit"
+                class="btn-primary"
+                [disabled]="isLoading()"
+                id="btn-send-otp"
+              >
+                @if (isLoading()) {
+                  <span class="spinner"></span>
+                  <span>Dispatching 6-Digit OTP...</span>
+                } @else {
+                  <span>Send 6-Digit Verification Code</span>
+                  <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                }
+              </button>
+            </form>
+          </div>
+        }
+
+        <!-- STEP 2: Enter 6-Digit OTP -->
+        @if (userStep() === 'otp') {
+          <div class="step-container otp-step">
+            <div class="section-label-group">
+              <span class="section-badge badge-green">Step 2 of 2</span>
+              <h2 class="section-title">Enter 6-Digit Code</h2>
+              <p class="section-desc">
+                We've dispatched a one-time verification passcode to
+                <strong class="highlight-recipient">
+                  {{ latestOtpInfo()?.recipient || emailOrPhone() }}
+                </strong>
+                <button type="button" class="btn-inline-change" (click)="changeRecipient()" title="Change address">
+                  Edit
+                </button>
+              </p>
+            </div>
+
+            <!-- Demo helper card with the 6-digit OTP -->
+            @if (latestOtpInfo()?.otp) {
+              <div class="dev-otp-card" (click)="quickFillOtp()">
+                <div class="dev-otp-left">
+                  <span class="dev-tag">DEV ENVIRONMENT PREVIEW</span>
+                  <span class="dev-otp-code">{{ latestOtpInfo()?.otp }}</span>
+                </div>
+                <button type="button" class="btn-autofill-otp">
+                  Auto Fill & Verify
+                </button>
+              </div>
+            }
+
+            @if (latestOtpInfo()?.deliveryStatus?.previewUrl) {
+              <a
+                [href]="latestOtpInfo()?.deliveryStatus?.previewUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="email-preview-badge"
+                id="link-view-email"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+                <span>Live Dispatched Email: Click to view received email inbox</span>
+              </a>
+            }
+
+            <!-- 6 Digit Input Boxes -->
+            <div class="otp-boxes-group" (paste)="onPasteOtp($event)">
+              @for (digit of otpDigits(); track $index) {
+                <input
+                  #otpInput
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  maxlength="1"
+                  [value]="digit"
+                  (input)="onDigitInput($event, $index)"
+                  (keydown)="onKeyDown($event, $index)"
+                  class="otp-digit-box"
+                  [class.filled]="digit !== ''"
+                  [id]="'otp-digit-' + $index"
+                  [disabled]="isLoading()"
+                  autocomplete="one-time-code"
+                />
+              }
+            </div>
+
+            <!-- Resend & Countdown Controls -->
+            <div class="otp-meta-row">
+              @if (resendCountdown() > 0) {
+                <span class="resend-countdown">
+                  <svg class="clock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  Resend code in <strong>{{ resendCountdown() }}s</strong>
+                </span>
+              } @else {
+                <button
+                  type="button"
+                  class="btn-resend-link"
+                  (click)="resendOtp()"
+                  [disabled]="isLoading()"
+                  id="btn-resend-otp"
+                >
+                  <svg class="resend-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                  </svg>
+                  Didn't receive code? Resend OTP
+                </button>
+              }
+
+              <button type="button" class="btn-back-link" (click)="changeRecipient()">
+                Change {{ selectedChannel() === 'email' ? 'Email' : 'Number' }}
+              </button>
+            </div>
+
+            <!-- Verify Button -->
+            <button
+              type="button"
+              class="btn-primary"
+              (click)="submitVerifyOtp()"
+              [disabled]="isLoading() || !isOtpComplete()"
+              id="btn-verify-otp"
+            >
+              @if (isLoading()) {
+                <span class="spinner"></span>
+                <span>Authenticating 6-Digit OTP...</span>
+              } @else {
+                <svg class="btn-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>Verify & Sign In</span>
+              }
+            </button>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- TAB 2: SUPERADMIN LOGIN -->
+    @if (activeMode() === 'superadmin') {
+      <section class="tab-content superadmin-section">
+        <div class="superadmin-banner">
+          <div class="banner-badge">
+            <svg class="shield-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span>Master Level Authentication</span>
+          </div>
+          <p class="banner-text">SuperAdmin accounts hold unrestricted infrastructure and configuration privileges.</p>
+        </div>
+
+        <form (ngSubmit)="submitSuperadminLogin()" class="auth-form" autocomplete="on">
+          <!-- Identifier -->
+          <div class="form-group">
+            <label for="admin-identifier" class="field-label">SuperAdmin Identifier (Email / Username)</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <input
+                id="admin-identifier"
+                type="text"
+                name="superadminIdentifier"
+                [(ngModel)]="superadminIdentifier"
+                placeholder="superadmin@skar.com or superadmin"
+                class="styled-input"
+                required
+                autocomplete="username"
+                [disabled]="isLoading()"
+              />
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label for="admin-password" class="field-label">Master Password</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <input
+                id="admin-password"
+                [type]="showPassword() ? 'text' : 'password'"
+                name="superadminPassword"
+                [(ngModel)]="superadminPassword"
+                placeholder="••••••••••••"
+                class="styled-input"
+                required
+                autocomplete="current-password"
+                [disabled]="isLoading()"
+              />
+              <button
+                type="button"
+                class="btn-toggle-eye"
+                (click)="togglePasswordVisibility()"
+                tabindex="-1"
+                title="Toggle password visibility"
+              >
+                @if (showPassword()) {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                }
+              </button>
+            </div>
+          </div>
+
+          <!-- Demo Credentials Helper -->
+          <div class="demo-helpers">
+            <span class="helper-text">Seeded SuperAdmin:</span>
+            <button
+              type="button"
+              class="demo-chip gold-chip"
+              (click)="fillDemoSuperadmin()"
+              title="Populate default SuperAdmin credentials"
+            >
+              👑 superadmin&#64;skar.com / SuperAdmin&#64;123
+            </button>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            class="btn-primary btn-gold"
+            [disabled]="isLoading()"
+            id="btn-superadmin-submit"
+          >
+            @if (isLoading()) {
+              <span class="spinner"></span>
+              <span>Authenticating SuperAdmin...</span>
+            } @else {
+              <svg class="btn-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              <span>Authorize SuperAdmin Access</span>
+            }
+          </button>
+        </form>
+      </section>
+    }
+
+    <!-- Security Footer -->
+    <footer class="auth-footer">
+      <div class="security-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+        <span>End-to-End Encrypted</span>
+      </div>
+      <span class="dot">•</span>
+      <div class="security-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>5-Minute OTP Expiry</span>
+      </div>
+      <span class="dot">•</span>
+      <div class="security-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <span>JWT Bearer Protected</span>
+      </div>
+    </footer>
+  </div>
+</div>

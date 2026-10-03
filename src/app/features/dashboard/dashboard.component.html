@@ -1,0 +1,84 @@
+<div class="dashboard-viewport">
+  <div class="ambient-glow"></div>
+
+  <div class="dashboard-container">
+    <!-- Navbar / Top Header -->
+    <header class="dashboard-nav">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <span class="brand-title">SKAR PROVINCE</span>
+      </div>
+
+      <div class="nav-right">
+        <div class="user-pill" [class.admin-pill]="isSuperAdmin()">
+          <span class="status-indicator"></span>
+          <span class="user-role">{{ isSuperAdmin() ? 'SUPERADMIN' : 'AUTHENTICATED USER' }}</span>
+        </div>
+        <button type="button" class="btn-logout" (click)="logout()" id="btn-logout">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Welcome Hero Banner -->
+    <section class="hero-banner" [class.hero-admin]="isSuperAdmin()">
+      <div class="hero-content">
+        <span class="welcome-chip">
+          @if (isSuperAdmin()) {
+            👑 Master Administrative Access
+          } @else {
+            🔐 Verified 6-Digit OTP Session
+          }
+        </span>
+        <h1 class="hero-name">Welcome, {{ user()?.name || 'Administrator' }}</h1>
+        <p class="hero-subtitle">
+          @if (isSuperAdmin()) {
+            You have full elevated administrative clearance across all microservices and account nodes.
+          } @else {
+            Your identity was successfully verified via one-time passcode on {{ user()?.email || user()?.number }}.
+          }
+        </p>
+      </div>
+    </section>
+
+    <!-- Grid Cards Info -->
+    <div class="info-grid">
+      <div class="info-card">
+        <span class="card-label">Account Identifier</span>
+        <span class="card-val">{{ user()?.email || user()?.number || 'admin' }}</span>
+        <span class="card-hint">Primary linked contact</span>
+      </div>
+
+      <div class="info-card">
+        <span class="card-label">Assigned Role</span>
+        <span class="card-val highlight-val" [class.gold-text]="isSuperAdmin()">
+          {{ user()?.role?.toUpperCase() || 'USER' }}
+        </span>
+        <span class="card-hint">System clearance level</span>
+      </div>
+
+      <div class="info-card">
+        <span class="card-label">Session Protocol</span>
+        <span class="card-val">JWT HS256</span>
+        <span class="card-hint">Bearer access token (15m)</span>
+      </div>
+
+      <div class="info-card">
+        <span class="card-label">Route Security</span>
+        <span class="card-val" style="color: #34d399; font-size: 0.95rem;">AuthGuard Active</span>
+        <span class="card-hint">Refresh token rotation (7d)</span>
+      </div>
+    </div>
+  </div>
+</div>
